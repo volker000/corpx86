@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Admin — Volker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        .admin-tabs { display:flex; gap:8px; margin-bottom:28px; flex-wrap:wrap; }
+        .admin-tab { padding:8px 20px; border-radius:8px; border:1px solid var(--border); background:transparent; color:var(--text-muted); cursor:pointer; font-size:0.9rem; font-family:inherit; transition:.2s; }
+        .admin-tab.active, .admin-tab:hover { background:var(--primary); color:#fff; border-color:var(--primary); }
+        .tab-section { display:none; }
+        .tab-section.active { display:block; }
+        .tip-row { display:flex; align-items:center; gap:12px; padding:14px 0; border-bottom:1px solid var(--border); }
+        .tip-row .tip-meta { flex:1; }
+        .tip-row .tip-meta strong { font-size:0.95rem; }
+        .tip-row .tip-meta span { font-size:0.8rem; color:var(--text-muted); display:block; margin-top:2px; }
+        .tip-icon-big { font-size:1.8rem; width:42px; text-align:center; }
+        .dl-row { display:flex; align-items:center; gap:12px; padding:14px 0; border-bottom:1px solid var(--border); }
+        .dl-thumb { width:48px; height:48px; border-radius:8px; object-fit:cover; background:var(--bg-card); display:flex; align-items:center; justify-content:center; font-size:1.5rem; flex-shrink:0; overflow:hidden; }
+        .dl-thumb img { width:100%; height:100%; object-fit:cover; }
+        .dl-meta { flex:1; min-width:0; }
+        .dl-meta strong { font-size:0.95rem; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .dl-meta span { font-size:0.8rem; color:var(--text-muted); }
+        .dl-actions { display:flex; gap:6px; flex-shrink:0; }
+        .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:1000; align-items:center; justify-content:center; }
+        .modal-overlay.open { display:flex; }
+        .modal-box { background:var(--bg-card); border:1px solid var(--border); border-radius:16px; padding:28px; width:100%; max-width:500px; max-height:90vh; overflow-y:auto; }
+        .modal-box h4 { margin:0 0 20px; font-size:1.1rem; }
+        .modal-close { float:right; background:none; border:none; color:var(--text-muted); font-size:1.3rem; cursor:pointer; margin-top:-4px; }
+        .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+        .badge-count { display:inline-block; background:var(--primary); color:#fff; border-radius:99px; padding:1px 8px; font-size:0.75rem; margin-left:6px; }
+    </style>
+</head>
+<body>
+    <div class="particles-bg" id="particles"></div>
+
+    <nav class="navbar scrolled" id="navbar">
+        <div class="nav-inner">
+            <a href="/" class="nav-logo">⚡ Volker</a>
+            <ul class="nav-links">
+                <li><a href="/">Início</a></li>
+                <li><a href="/otimizacao">Otimização</a></li>
+                <li><a href="/aplicativos">Aplicativos</a></li>
+                <li><a href="/arquivos">Arquivos</a></li>
+                <li><a href="/chat">💬 Chat</a></li>
+            </ul>
+            <div class="nav-auth">
+                <div class="nav-user">
+                    <div class="avatar-sm" style="background:{{ current_user.avatar_color }}">{{ current_user.username[0]|upper }}</div>
+                    <span class="username">{{ current_user.username }}</span>
+                    <span class="badge-admin">Admin</span>
+                    <a href="/logout" class="btn btn-sm btn-ghost">Sair</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <section class="section" style="padding-top:120px;">
+        <div class="container">
+            <div class="section-header" style="margin-bottom:24px;">
+                <span class="section-tag">Administração</span>
+                <h1 class="section-title">Painel Admin ⚙️</h1>
+                <p class="section-desc">Gerencie usuários, uploads, dicas de otimização e mais.</p>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for cat, msg in messages %}
+                        <div class="flash {{ cat }}">{{ msg }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- Abas -->
+            <div class="admin-tabs">
+                <button class="admin-tab active" onclick="switchTab('usuarios')">👥 Usuários <span class="badge-count">{{ users|length }}</span></button>
+                <button class="admin-tab" onclick="switchTab('uploads')">📤 Novo Upload</button>
+                <button class="admin-tab" onclick="switchTab('arquivos')">📦 Gerenciar Arquivos <span class="badge-count">{{ downloads|length }}</span></button>
+                <button class="admin-tab" onclick="switchTab('dicas')">💡 Dicas de Otimização <span class="badge-count">{{ tips|length }}</span></button>
+            </div>
+
+            <!-- ABA: Usuários -->
+            <div class="tab-section active" id="tab-usuarios">
+                <div class="admin-card" style="overflow-x:auto;">
+                    <h3>👥 Usuários ({{ users|length }})</h3>
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th><th>Usuário</th><th>Email</th><th>Cargo</th><th>Insígnia</th><th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for u in users %}
+                            <tr>
+                                <td>{{ u.id }}</td>
+                                <td>
+                                    <span style="color:{{ u.avatar_color }};font-weight:600;">{{ u.username }}</span>
+                                    {% if u.role == 'admin' %} <span class="badge-admin">Admin</span>{% endif %}
+                                    {% if u.display_badge == 'beta' %} <span class="badge-beta">Beta</span>{% endif %}
+                                </td>
+                                <td>{{ u.email }}</td>
+                                <td>{{ u.role }}</td>
+                                <td>{{ u.display_badge }}</td>
+                                <td>
+                                    <div class="admin-actions">
+                                        {% if u.role != 'admin' %}
+                                            <a href="/admin/set-role/{{ u.id }}/admin" class="btn btn-sm btn-ghost" onclick="return confirm('Tornar {{ u.username }} admin?')">⬆ Admin</a>
+                                        {% else %}
+                                            <a href="/admin/set-role/{{ u.id }}/membro" class="btn btn-sm btn-ghost" onclick="return confirm('Remover admin de {{ u.username }}?')">⬇ Membro</a>
+                                        {% endif %}
+                                        {% if u.display_badge != 'beta' %}
+                                            <a href="/admin/set-badge/{{ u.id }}/beta" class="btn btn-sm btn-ghost" onclick="return confirm('Dar badge Beta para {{ u.username }}?')">🎖 Beta</a>
+                                        {% else %}
+                                            <a href="/admin/set-badge/{{ u.id }}/none" class="btn btn-sm btn-ghost" onclick="return confirm('Remover badge de {{ u.username }}?')">❌ Remover</a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ABA: Novo Upload -->
+            <div class="tab-section" id="tab-uploads">
+                <div class="admin-card" style="max-width:600px;">
+                    <h3>📤 Enviar Novo Arquivo</h3>
+                    <form method="POST" action="/admin/upload" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label>Título *</label>
+                            <input type="text" name="title" required placeholder="Nome do arquivo ou app">
+                        </div>
+                        <div class="form-group">
+                            <label>Descrição</label>
+                            <textarea name="description" placeholder="Descreva o arquivo, funcionalidades, requisitos..." rows="4"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Categoria</label>
+                                <select name="category">
+                                    <option value="aplicativos">📱 Aplicativos</option>
+                                    <option value="arquivos">📄 Arquivos</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Versão</label>
+                                <input type="text" name="version" value="1.0" placeholder="1.0">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Imagem/Thumbnail (opcional)</label>
+                            <input type="file" name="thumbnail" accept="image/*" style="padding:8px 0;">
+                            <small style="color:var(--text-muted);font-size:0.8rem;">PNG, JPG, GIF, WEBP. Aparece no card do arquivo.</small>
+                        </div>
+                        <div class="form-group">
+                            <label>Arquivo *</label>
+                            <input type="file" name="file" required style="padding:8px 0;">
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">📤 Enviar Arquivo</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ABA: Gerenciar Arquivos -->
+            <div class="tab-section" id="tab-arquivos">
+                <div class="admin-card">
+                    <h3>📦 Arquivos & Apps ({{ downloads|length }})</h3>
+                    {% if downloads %}
+                        {% for dl in downloads %}
+                        <div class="dl-row">
+                            <div class="dl-thumb">
+                                {% if dl.thumbnail %}
+                                    <img src="/thumbnail/{{ dl.thumbnail }}" alt="thumb">
+                                {% else %}
+                                    {{ '📱' if dl.category == 'aplicativos' else '📄' }}
+                                {% endif %}
+                            </div>
+                            <div class="dl-meta">
+                                <strong>{{ dl.title }}</strong>
+                                <span>{{ dl.category }} · v{{ dl.version }} · 📥 {{ dl.downloads_count }} downloads</span>
+                                <span style="margin-top:2px;">{{ (dl.description[:80] + '...') if dl.description and dl.description|length > 80 else (dl.description or 'Sem descrição') }}</span>
+                            </div>
+                            <div class="dl-actions">
+                                <button class="btn btn-sm btn-ghost" onclick="openEditDownload({{ dl.id }}, '{{ dl.title|e }}', '{{ dl.description|replace('\n','\\n')|replace("'", "\\'")|e }}', '{{ dl.version }}', '{{ dl.category }}')">✏️ Editar</button>
+                                <a href="/admin/delete-download/{{ dl.id }}" class="btn btn-sm btn-danger" onclick="return confirm('Deletar {{ dl.title }}?')">🗑</a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p style="color:var(--text-muted);font-size:0.9rem;">Nenhum arquivo enviado ainda.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- ABA: Dicas de Otimização -->
+            <div class="tab-section" id="tab-dicas">
+                <div class="admin-grid" style="grid-template-columns:1fr 1fr;gap:24px;">
+                    <!-- Lista de dicas existentes -->
+                    <div class="admin-card" style="grid-column:1;">
+                        <h3>💡 Dicas Existentes ({{ tips|length }})</h3>
+                        {% if tips %}
+                            {% for tip in tips %}
+                            <div class="tip-row">
+                                <div class="tip-icon-big">{{ tip.icon }}</div>
+                                <div class="tip-meta">
+                                    <strong>{{ tip.number }}. {{ tip.title }}</strong>
+                                    <span>{{ (tip.description[:70] + '...') if tip.description|length > 70 else tip.description }}</span>
+                                </div>
+                                <div style="display:flex;gap:6px;flex-shrink:0;">
+                                    <button class="btn btn-sm btn-ghost" onclick="openEditTip({{ tip.id }}, '{{ tip.number }}', '{{ tip.icon|e }}', '{{ tip.title|e }}', '{{ tip.description|replace('\n','\\n')|replace("'", "\\'")|e }}', '{{ tip.bullets|replace('\n','\\n')|replace("'", "\\'")|e }}')">✏️</button>
+                                    <a href="/admin/tip/delete/{{ tip.id }}" class="btn btn-sm btn-danger" onclick="return confirm('Deletar esta dica?')">🗑</a>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <p style="color:var(--text-muted);font-size:0.9rem;">Nenhuma dica cadastrada.</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Formulário nova dica -->
+                    <div class="admin-card" style="grid-column:2;">
+                        <h3>➕ Nova Dica de Otimização</h3>
+                        <form method="POST" action="/admin/tip/add">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Ícone (emoji)</label>
+                                    <input type="text" name="icon" placeholder="🔧" maxlength="4" value="🔧">
+                                </div>
+                                <div class="form-group">
+                                    <label>Número/Ordem</label>
+                                    <input type="number" name="number" placeholder="{{ (tips|length + 1) }}" value="{{ tips|length + 1 }}" min="1">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Título *</label>
+                                <input type="text" name="title" required placeholder="Ex: Limpeza de Cache">
+                            </div>
+                            <div class="form-group">
+                                <label>Descrição *</label>
+                                <textarea name="description" required placeholder="Descreva a dica de forma clara e objetiva..." rows="3"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Itens da lista (um por linha)</label>
+                                <textarea name="bullets" placeholder="Use ferramentas de limpeza automática&#10;Limpe o cache a cada 2-3 dias&#10;Evite limpar dados importantes" rows="4"></textarea>
+                                <small style="color:var(--text-muted);font-size:0.8rem;">Cada linha vira um item com marcador na página.</small>
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">➕ Adicionar Dica</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modal Editar Download -->
+    <div class="modal-overlay" id="modal-edit-download">
+        <div class="modal-box">
+            <h4>✏️ Editar Arquivo <button class="modal-close" onclick="closeModal('modal-edit-download')">✕</button></h4>
+            <form method="POST" id="form-edit-download" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label>Título *</label>
+                    <input type="text" name="title" id="edit-dl-title" required>
+                </div>
+                <div class="form-group">
+                    <label>Descrição</label>
+                    <textarea name="description" id="edit-dl-desc" rows="4"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Categoria</label>
+                        <select name="category" id="edit-dl-cat">
+                            <option value="aplicativos">📱 Aplicativos</option>
+                            <option value="arquivos">📄 Arquivos</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Versão</label>
+                        <input type="text" name="version" id="edit-dl-version">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Nova Thumbnail (opcional)</label>
+                    <input type="file" name="thumbnail" accept="image/*" style="padding:8px 0;">
+                    <small style="color:var(--text-muted);font-size:0.8rem;">Deixe vazio para manter a atual.</small>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">💾 Salvar Alterações</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Editar Dica -->
+    <div class="modal-overlay" id="modal-edit-tip">
+        <div class="modal-box">
+            <h4>✏️ Editar Dica <button class="modal-close" onclick="closeModal('modal-edit-tip')">✕</button></h4>
+            <form method="POST" id="form-edit-tip">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Ícone (emoji)</label>
+                        <input type="text" name="icon" id="edit-tip-icon" maxlength="4">
+                    </div>
+                    <div class="form-group">
+                        <label>Número/Ordem</label>
+                        <input type="number" name="number" id="edit-tip-number" min="1">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Título *</label>
+                    <input type="text" name="title" id="edit-tip-title" required>
+                </div>
+                <div class="form-group">
+                    <label>Descrição *</label>
+                    <textarea name="description" id="edit-tip-desc" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Itens da lista (um por linha)</label>
+                    <textarea name="bullets" id="edit-tip-bullets" rows="4"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">💾 Salvar Dica</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Partículas
+        const particlesEl = document.getElementById('particles');
+        for (let i = 0; i < 15; i++) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            p.style.left = Math.random() * 100 + '%';
+            p.style.top = Math.random() * 100 + '%';
+            p.style.animationDelay = Math.random() * 6 + 's';
+            particlesEl.appendChild(p);
+        }
+
+        // Abas
+        function switchTab(name) {
+            document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.admin-tab').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-' + name).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Modal helpers
+        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+        document.querySelectorAll('.modal-overlay').forEach(m => {
+            m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+        });
+
+        // Abrir modal editar download
+        function openEditDownload(id, title, desc, version, category) {
+            document.getElementById('form-edit-download').action = '/admin/edit-download/' + id;
+            document.getElementById('edit-dl-title').value = title;
+            document.getElementById('edit-dl-desc').value = desc.replace(/\\n/g, '\n');
+            document.getElementById('edit-dl-version').value = version;
+            document.getElementById('edit-dl-cat').value = category;
+            document.getElementById('modal-edit-download').classList.add('open');
+        }
+
+        // Abrir modal editar dica
+        function openEditTip(id, number, icon, title, desc, bullets) {
+            document.getElementById('form-edit-tip').action = '/admin/tip/edit/' + id;
+            document.getElementById('edit-tip-number').value = number;
+            document.getElementById('edit-tip-icon').value = icon;
+            document.getElementById('edit-tip-title').value = title;
+            document.getElementById('edit-tip-desc').value = desc.replace(/\\n/g, '\n');
+            document.getElementById('edit-tip-bullets').value = bullets.replace(/\\n/g, '\n');
+            document.getElementById('modal-edit-tip').classList.add('open');
+        }
+    </script>
+</body>
+</html>
