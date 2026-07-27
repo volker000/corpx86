@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block titulo %}Projetos - CentralMeddods{% endblock %}
+
+{% block conteudo %}
+
+<section class="hero" style="min-height: 40vh;">
+    <div class="container">
+        <div class="hero-texto" style="max-width: 100%; text-align: center;">
+            <span class="hero-tag">Portfólio</span>
+            <h1 class="hero-titulo" style="font-size: 2.6rem;">
+                Nossos <span class="destaque">Projetos</span>
+            </h1>
+            <p class="hero-descricao" style="margin: 0 auto;">
+                Conheça as soluções que desenvolvemos para transformar o setor de saúde.
+            </p>
+        </div>
+    </div>
+</section>
+
+<section class="secao secao-projetos">
+    <div class="container">
+        <div class="projetos-grid">
+            {% for p in projetos %}
+            <div class="projeto-card">
+                <div class="projeto-icone">{{ p.icone }}</div>
+                <h3>{{ p.titulo }}</h3>
+                <p>{{ p.descricao }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+{% endblock %}
