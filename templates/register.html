@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar — Volker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="particles-bg" id="particles"></div>
+    <div class="hero-orb hero-orb-1" style="position:fixed;"></div>
+    <div class="hero-orb hero-orb-2" style="position:fixed;"></div>
+
+    <div class="auth-page">
+        <div class="auth-box">
+            <h1>Criar Conta 🚀</h1>
+            <p class="subtitle">Junte-se à comunidade Volker</p>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for cat, msg in messages %}
+                        <div class="flash {{ cat }}">{{ msg }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST">
+                <div class="form-group">
+                    <label>Nome de Usuário</label>
+                    <input type="text" name="username" required autofocus placeholder="Escolha um username">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" name="email" required placeholder="seu@email.com">
+                </div>
+                <div class="form-group">
+                    <label>Senha</label>
+                    <input type="password" name="password" required placeholder="Crie uma senha segura">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 8px;">Criar Conta →</button>
+            </form>
+            <p class="auth-switch">Já tem conta? <a href="{{ url_for('login') }}">Entrar</a></p>
+            <div style="text-align: center; margin-top: 16px;">
+                <span class="badge-beta">🎖️ Primeiras 100 contas ganham badge Beta!</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const particlesEl = document.getElementById('particles');
+        for (let i = 0; i < 20; i++) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            p.style.left = Math.random() * 100 + '%';
+            p.style.top = Math.random() * 100 + '%';
+            p.style.animationDelay = Math.random() * 6 + 's';
+            particlesEl.appendChild(p);
+        }
+    </script>
+</body>
+</html>
