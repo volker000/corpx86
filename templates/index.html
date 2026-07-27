@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Volker — Otimização & Apps</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Particles -->
+    <div class="particles-bg" id="particles"></div>
+
+    <!-- Navbar -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-inner">
+            <a href="/" class="nav-logo">⚡ Volker</a>
+            <ul class="nav-links">
+                <li><a href="/" class="active">Início</a></li>
+                <li><a href="/otimizacao">Otimização</a></li>
+                <li><a href="/aplicativos">Aplicativos</a></li>
+                <li><a href="/arquivos">Arquivos</a></li>
+                <li><a href="/chat">💬 Chat</a></li>
+            </ul>
+            <div class="nav-auth">
+                {% if current_user.is_authenticated %}
+                    <div class="nav-user">
+                        <div class="avatar-sm" style="background:{{ current_user.avatar_color }}">
+                            {{ current_user.username[0]|upper }}
+                        </div>
+                        <span class="username">{{ current_user.username }}</span>
+                        {% if current_user.is_admin %}
+                            <a href="/admin" class="btn btn-sm btn-ghost">⚙️ Admin</a>
+                        {% endif %}
+                        <a href="/logout" class="btn btn-sm btn-ghost">Sair</a>
+                    </div>
+                {% else %}
+                    <a href="/login" class="btn-ghost">Entrar</a>
+                    <a href="/register" class="btn btn-primary btn-sm">Criar Conta</a>
+                {% endif %}
+            </div>
+            <button class="mobile-menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('show')">☰</button>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="hero-bg"></div>
+        <div class="hero-orb hero-orb-1"></div>
+        <div class="hero-orb hero-orb-2"></div>
+        <div class="hero-orb hero-orb-3"></div>
+        <div class="hero-content">
+            <div class="hero-badge">
+                <span class="dot"></span>
+                Plataforma Ativa
+            </div>
+            <h1 class="hero-title">
+                Maximize o<br>
+                <span class="gradient-text">Desempenho</span> dos seus Apps
+            </h1>
+            <p class="hero-subtitle">
+                Ferramentas, otimizações e recursos para deixar seus aplicativos mais rápidos, leves e eficientes. Acesse downloads, dicas pro e uma comunidade ativa.
+            </p>
+            <div class="hero-buttons">
+                <a href="/aplicativos" class="btn btn-primary">📦 Ver Aplicativos</a>
+                <a href="/otimizacao" class="btn btn-ghost">🚀 Otimizar Agora</a>
+            </div>
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <div class="number" id="statUsers">0</div>
+                    <div class="label">Usuários</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="number" id="statDownloads">0</div>
+                    <div class="label">Downloads</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="number" id="statApps">0</div>
+                    <div class="label">Apps Disponíveis</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header animate-in">
+                <span class="section-tag">Recursos</span>
+                <h2 class="section-title">Tudo que você precisa</h2>
+                <p class="section-desc">Uma plataforma completa para otimizar e baixar as melhores ferramentas.</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card animate-in">
+                    <div class="feature-icon">🚀</div>
+                    <h3>Otimização Profissional</h3>
+                    <p>Dicas e técnicas avançadas para acelerar seus aplicativos, reduzir consumo de RAM e bateria.</p>
+                </div>
+                <div class="feature-card animate-in">
+                    <div class="feature-icon">📦</div>
+                    <h3>Downloads Exclusivos</h3>
+                    <p>Baixe aplicativos, ferramentas e arquivos otimizados diretamente da plataforma.</p>
+                </div>
+                <div class="feature-card animate-in">
+                    <div class="feature-icon">💬</div>
+                    <h3>Chat Global</h3>
+                    <p>Converse com a comunidade em tempo real. Compartilhe dicas, tire dúvidas e conecte-se.</p>
+                </div>
+                <div class="feature-card animate-in">
+                    <div class="feature-icon">🎖️</div>
+                    <h3>Sistema de Insígnias</h3>
+                    <p>Ganhe badges exclusivos como Beta Tester. As primeiras 100 contas recebem insígnia especial.</p>
+                </div>
+                <div class="feature-card animate-in">
+                    <div class="feature-icon">⚙️</div>
+                    <h3>Arquivos & Scripts</h3>
+                    <p>Baixe scripts, configurações e arquivos prontos para otimizar qualquer projeto.</p>
+                </div>
+                <div class="feature-card animate-in">
+                    <div class="feature-icon">👥</div>
+                    <h3>Comunidade Ativa</h3>
+                    <p>Participe do chat, ajude outros membros e receba suporte da comunidade Volker.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="section" style="padding: 60px 24px;">
+        <div class="container" style="text-align: center;">
+            <div class="feature-card animate-in" style="max-width: 700px; margin: 0 auto; padding: 48px 40px; text-align: center; border-color: rgba(108, 92, 231, 0.2);">
+                <h2 style="font-size: 2rem; font-weight: 800; margin-bottom: 16px;">Pronto para começar? 🚀</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 32px; font-size: 1.05rem;">Crie sua conta gratuita e comece a otimizar seus apps agora mesmo.</p>
+                <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+                    <a href="/register" class="btn btn-primary">🎯 Criar Conta Grátis</a>
+                    <a href="/chat" class="btn btn-ghost">💬 Entrar no Chat</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="/">Início</a>
+            <a href="/otimizacao">Otimização</a>
+            <a href="/aplicativos">Aplicativos</a>
+            <a href="/arquivos">Arquivos</a>
+            <a href="/chat">Chat</a>
+        </div>
+        <p class="footer-copy">© 2025 Volker — Todos os direitos reservados.</p>
+    </footer>
+
+    <script>
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 50);
+        });
+
+        // Intersection Observer for animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.animate-in').forEach(el => observer.observe(el));
+
+        // Animated counters
+        function animateCounter(el, target) {
+            let current = 0;
+            const step = Math.ceil(target / 40);
+            const interval = setInterval(() => {
+                current += step;
+                if (current >= target) {
+                    current = target;
+                    clearInterval(interval);
+                }
+                el.textContent = current.toLocaleString();
+            }, 30);
+        }
+
+        const statsObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    animateCounter(document.getElementById('statUsers'), 150);
+                    animateCounter(document.getElementById('statDownloads'), 1200);
+                    animateCounter(document.getElementById('statApps'), 24);
+                    statsObserver.disconnect();
+                }
+            });
+        }, { threshold: 0.5 });
+
+        const statsEl = document.querySelector('.hero-stats');
+        if (statsEl) statsObserver.observe(statsEl);
+
+        // Particles
+        const particlesEl = document.getElementById('particles');
+        for (let i = 0; i < 30; i++) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            p.style.left = Math.random() * 100 + '%';
+            p.style.top = Math.random() * 100 + '%';
+            p.style.animationDelay = Math.random() * 6 + 's';
+            p.style.animationDuration = (4 + Math.random() * 4) + 's';
+            particlesEl.appendChild(p);
+        }
+    </script>
+</body>
+</html>
