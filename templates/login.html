@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — Volker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="particles-bg" id="particles"></div>
+    <div class="hero-orb hero-orb-1" style="position:fixed;"></div>
+    <div class="hero-orb hero-orb-2" style="position:fixed;"></div>
+
+    <div class="auth-page">
+        <div class="auth-box">
+            <h1>Bem-vindo de volta! 👋</h1>
+            <p class="subtitle">Entre na sua conta para continuar</p>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for cat, msg in messages %}
+                        <div class="flash {{ cat }}">{{ msg }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST">
+                <div class="form-group">
+                    <label>Nome de Usuário</label>
+                    <input type="text" name="username" required autofocus placeholder="Seu username">
+                </div>
+                <div class="form-group">
+                    <label>Senha</label>
+                    <input type="password" name="password" required placeholder="Sua senha">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 8px;">Entrar →</button>
+            </form>
+            <p class="auth-switch">Não tem conta? <a href="{{ url_for('register') }}">Criar conta grátis</a></p>
+        </div>
+    </div>
+
+    <script>
+        const particlesEl = document.getElementById('particles');
+        for (let i = 0; i < 20; i++) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            p.style.left = Math.random() * 100 + '%';
+            p.style.top = Math.random() * 100 + '%';
+            p.style.animationDelay = Math.random() * 6 + 's';
+            particlesEl.appendChild(p);
+        }
+    </script>
+</body>
+</html>
