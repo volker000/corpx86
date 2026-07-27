@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Global — Volker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="chat-layout">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>⚡ Volker Chat</h2>
+                <button id="newChannelBtn" title="Criar canal">+</button>
+            </div>
+            <div class="channel-list" id="channelList">
+                {% for ch in channels %}
+                <div class="channel-item{% if loop.first %} active{% endif %}" data-id="{{ ch.id }}" data-name="{{ ch.name }}" data-desc="{{ ch.description }}">
+                    <span class="hash">#</span>
+                    <span>{{ ch.name }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="sidebar-footer">
+                <div class="user-panel">
+                    <div class="avatar" style="background:{{ current_user.avatar_color }}">
+                        {{ current_user.username[0]|upper }}
+                        <div class="status-dot"></div>
+                    </div>
+                    <div class="user-info">
+                        <div class="username">
+                            {{ current_user.username }}
+                            {% if current_user.role == 'admin' %}<span class="badge-admin">Admin</span>{% endif %}
+                            {% if badge == 'beta' %}<span class="badge-beta">Beta</span>{% endif %}
+                        </div>
+                        <div class="status-text">Online</div>
+                    </div>
+                    <a href="/" class="logout-btn" title="Voltar ao site">🏠</a>
+                    <button class="logout-btn" onclick="window.location='{{ url_for('logout') }}'" title="Sair">⏻</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Chat -->
+        <div class="chat-main">
+            <div class="chat-header">
+                <span class="hash">#</span>
+                <span class="channel-name" id="chatChannelName">{{ channels[0].name if channels else '' }}</span>
+                <span class="divider"></span>
+                <span class="channel-desc" id="chatChannelDesc">{{ channels[0].description if channels else '' }}</span>
+                <span class="online-count" id="onlineCount">0 online</span>
+            </div>
+            <div class="messages-container" id="messagesContainer">
+                <div class="empty-state" id="emptyState">
+                    <div class="icon">💬</div>
+                    <p>Bem-vindo ao #{{ channels[0].name if channels else 'canal' }}!</p>
+                </div>
+            </div>
+            <div class="typing-indicator" id="typingIndicator"></div>
+            <div class="message-input-area">
+                <div class="message-input-wrapper">
+                    <textarea id="messageInput" rows="1" placeholder="Enviar mensagem em #{{ channels[0].name if channels else '' }}" data-channel="{{ channels[0].id if channels else '' }}"></textarea>
+                    <button class="send-btn" id="sendBtn" title="Enviar">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Members Panel -->
+        <div class="members-panel">
+            <h3>Online — <span id="memberCount">0</span></h3>
+            <div id="membersList"></div>
+        </div>
+    </div>
+
+    <!-- New Channel Modal -->
+    <div class="modal-overlay" id="channelModal" style="display:none">
+        <div class="modal">
+            <h2>Criar Canal</h2>
+            <div class="form-group">
+                <label>Nome do Canal</label>
+                <input type="text" id="newChannelName" placeholder="ex: desenvolvimento" maxlength="40">
+            </div>
+            <div class="form-group">
+                <label>Descrição (opcional)</label>
+                <input type="text" id="newChannelDesc" placeholder="Sobre o que é este canal?" maxlength="200">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-ghost btn-sm" onclick="document.getElementById('channelModal').style.display='none'">Cancelar</button>
+                <button class="btn btn-primary btn-sm" id="createChannelBtn">Criar Canal</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.4/socket.io.min.js"></script>
+    <script>
+        const currentUserId = {{ current_user.id }};
+        const currentUser = '{{ current_user.username }}';
+        const currentUserColor = '{{ current_user.avatar_color }}';
+        const currentUserRole = '{{ role }}';
+        const currentUserBadge = '{{ badge }}';
+
+        const socket = io();
+        let currentChannelId = {{ channels[0].id if channels else 'null' }};
+        let typingTimeout = null;
+        let typingUsers = {};
+
+        const messagesContainer = document.getElementById('messagesContainer');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const typingIndicator = document.getElementById('typingIndicator');
+
+        function badgeHTML(badge) {
+            if (badge === 'beta') return '<span class="badge-beta">Beta</span>';
+            return '';
+        }
+
+        function roleHTML(role) {
+            if (role === 'admin') return '<span class="badge-admin">Admin</span>';
+            return '';
+        }
+
+        async function loadMessages(channelId) {
+            const res = await fetch(`/api/messages/${channelId}`);
+            const msgs = await res.json();
+            messagesContainer.innerHTML = '';
+            if (msgs.length === 0) {
+                messagesContainer.innerHTML = '<div class="empty-state"><div class="icon">💬</div><p>Nenhuma mensagem ainda. Envie a primeira!</p></div>';
+                return;
+            }
+            msgs.forEach(m => appendMessage(m, false));
+            scrollToBottom();
+        }
+
+        function appendMessage(m, scroll = true) {
+            const emptyState = document.getElementById('emptyState');
+            if (emptyState) emptyState.remove();
+
+            const initials = m.user[0].toUpperCase();
+            const html = `
+                <div class="message-group">
+                    <div class="avatar" style="background:${m.avatar_color}">${initials}</div>
+                    <div class="msg-content">
+                        <div class="msg-header">
+                            <span class="author" style="color:${m.avatar_color}">${m.user}</span>
+                            <span class="badges">${roleHTML(m.role)} ${badgeHTML(m.badge)}</span>
+                            <span class="timestamp">${m.timestamp}</span>
+                        </div>
+                        <div class="msg-text">${escapeHtml(m.content)}</div>
+                    </div>
+                </div>`;
+            messagesContainer.insertAdjacentHTML('beforeend', html);
+            if (scroll) scrollToBottom();
+        }
+
+        function escapeHtml(text) {
+            const d = document.createElement('div');
+            d.textContent = text;
+            return d.innerHTML;
+        }
+
+        function scrollToBottom() {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function sendMessage() {
+            const content = messageInput.value.trim();
+            if (!content || !currentChannelId) return;
+            socket.emit('send_message', { channel_id: currentChannelId, content });
+            messageInput.value = '';
+            messageInput.style.height = 'auto';
+            socket.emit('stop_typing', { channel_id: currentChannelId });
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        messageInput.addEventListener('input', () => {
+            messageInput.style.height = 'auto';
+            messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px';
+            socket.emit('typing', { channel_id: currentChannelId });
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                socket.emit('stop_typing', { channel_id: currentChannelId });
+            }, 2000);
+        });
+
+        document.getElementById('channelList').addEventListener('click', (e) => {
+            const item = e.target.closest('.channel-item');
+            if (!item) return;
+            if (currentChannelId) socket.emit('leave_channel', { channel_id: currentChannelId });
+            document.querySelectorAll('.channel-item').forEach(el => el.classList.remove('active'));
+            item.classList.add('active');
+            currentChannelId = parseInt(item.dataset.id);
+            document.getElementById('chatChannelName').textContent = item.dataset.name;
+            document.getElementById('chatChannelDesc').textContent = item.dataset.desc;
+            messageInput.placeholder = `Enviar mensagem em #${item.dataset.name}`;
+            messageInput.dataset.channel = currentChannelId;
+            socket.emit('join_channel', { channel_id: currentChannelId });
+            loadMessages(currentChannelId);
+            typingUsers = {};
+            updateTypingIndicator();
+        });
+
+        if (currentChannelId) {
+            socket.emit('join_channel', { channel_id: currentChannelId });
+            loadMessages(currentChannelId);
+        }
+
+        socket.on('new_message', (m) => appendMessage(m));
+
+        socket.on('user_list', (users) => {
+            const count = users.length;
+            document.getElementById('onlineCount').textContent = `${count} online`;
+            document.getElementById('memberCount').textContent = count;
+            document.getElementById('membersList').innerHTML = users.map(u => `
+                <div class="member-item">
+                    <div class="avatar" style="background:${u.avatar_color}">
+                        ${u.username[0].toUpperCase()}
+                        <div class="status-dot"></div>
+                    </div>
+                    <span class="member-name">
+                        ${u.username}
+                        ${roleHTML(u.role)}
+                        ${badgeHTML(u.badge)}
+                    </span>
+                </div>
+            `).join('');
+        });
+
+        socket.on('user_typing', (data) => {
+            typingUsers[data.username] = Date.now();
+            updateTypingIndicator();
+        });
+
+        socket.on('user_stop_typing', (data) => {
+            delete typingUsers[data.username];
+            updateTypingIndicator();
+        });
+
+        setInterval(() => {
+            const now = Date.now();
+            let changed = false;
+            for (const [user, time] of Object.entries(typingUsers)) {
+                if (now - time > 5000) { delete typingUsers[user]; changed = true; }
+            }
+            if (changed) updateTypingIndicator();
+        }, 2000);
+
+        function updateTypingIndicator() {
+            const names = Object.keys(typingUsers);
+            if (names.length === 0) { typingIndicator.innerHTML = ''; return; }
+            const text = names.length === 1 ? `${names[0]} está digitando` : `${names.join(', ')} estão digitando`;
+            typingIndicator.innerHTML = `<span class="dots"><span></span><span></span><span></span></span> ${text}`;
+        }
+
+        document.getElementById('newChannelBtn').addEventListener('click', () => {
+            document.getElementById('channelModal').style.display = 'flex';
+            document.getElementById('newChannelName').focus();
+        });
+
+        document.getElementById('createChannelBtn').addEventListener('click', async () => {
+            const name = document.getElementById('newChannelName').value.trim();
+            const desc = document.getElementById('newChannelDesc').value.trim();
+            if (!name) return;
+            const res = await fetch('/api/channels', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, description: desc })
+            });
+            const data = await res.json();
+            if (data.error) { alert(data.error); return; }
+            const channelList = document.getElementById('channelList');
+            channelList.insertAdjacentHTML('beforeend',
+                `<div class="channel-item" data-id="${data.id}" data-name="${data.name}" data-desc="${data.description}"><span class="hash">#</span><span>${data.name}</span></div>`
+            );
+            document.getElementById('channelModal').style.display = 'none';
+            document.getElementById('newChannelName').value = '';
+            document.getElementById('newChannelDesc').value = '';
+            channelList.querySelector(`[data-id="${data.id}"]`).click();
+        });
+    </script>
+</body>
+</html>
