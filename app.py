@@ -546,6 +546,18 @@ DEFAULT_TIPS = [
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
+
+        # Migration automática — adiciona colunas novas se não existirem
+        with db.engine.connect() as conn:
+            existing = [row[1] for row in conn.execute(db.text("PRAGMA table_info(download)")).fetchall()]
+            if 'thumbnail' not in existing:
+                conn.execute(db.text('ALTER TABLE download ADD COLUMN thumbnail VARCHAR(300) DEFAULT ""'))
+                conn.commit()
+                print("✅ Migration: coluna 'thumbnail' adicionada")
+            if 'version' not in existing:
+                conn.execute(db.text('ALTER TABLE download ADD COLUMN version VARCHAR(20) DEFAULT "1.0"'))
+                conn.commit()
+                print("✅ Migration: coluna 'version' adicionada")
         if not User.query.filter_by(role='admin').first():
             admin = User(username='admin', email='admin@volker.app', role='admin', badge='beta', avatar_color='#E17055')
             admin.set_password('admin123')
