@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block titulo %}Contato - CentralMeddods{% endblock %}
+
+{% block conteudo %}
+
+<section class="hero" style="min-height: 40vh;">
+    <div class="container">
+        <div class="hero-texto" style="max-width: 100%; text-align: center;">
+            <span class="hero-tag">Fale Conosco</span>
+            <h1 class="hero-titulo" style="font-size: 2.6rem;">
+                Entre em <span class="destaque">Contato</span>
+            </h1>
+            <p class="hero-descricao" style="margin: 0 auto;">
+                Tem um projeto em mente? Quer saber mais sobre nossas soluções? Estamos aqui para ajudar.
+            </p>
+        </div>
+    </div>
+</section>
+
+<section class="secao">
+    <div class="container">
+        <div class="contato-wrapper">
+
+            <!-- Info -->
+            <div class="contato-info">
+                <h3>Vamos conversar!</h3>
+                <p>Estamos prontos para ouvir suas ideias e ajudar a transformá-las em realidade. Entre em contato por qualquer um dos canais abaixo.</p>
+
+                <div class="info-item">
+                    <div class="icone">📧</div>
+                    <div class="texto">
+                        <strong>E-mail</strong>
+                        <span>contato@centralmeddods.com</span>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="icone">📱</div>
+                    <div class="texto">
+                        <strong>Telefone / WhatsApp</strong>
+                        <span>+55 (11) 99999-0000</span>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="icone">📍</div>
+                    <div class="texto">
+                        <strong>Localização</strong>
+                        <span>São Paulo, SP - Brasil</span>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="icone">🕐</div>
+                    <div class="texto">
+                        <strong>Horário</strong>
+                        <span>Seg - Sex: 9h às 18h</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulário -->
+            {% if enviado %}
+            <div class="contato-form">
+                <div class="sucesso-msg">
+                    <div class="icone">✅</div>
+                    <h3>Mensagem Enviada!</h3>
+                    <p>Obrigado, {{ nome }}! Entraremos em contato em breve.</p>
+                </div>
+            </div>
+            {% else %}
+            <form class="contato-form" method="POST" action="/contato">
+                <div class="form-grupo">
+                    <label for="nome">Nome</label>
+                    <input type="text" id="nome" name="nome" placeholder="Seu nome completo" required>
+                </div>
+                <div class="form-grupo">
+                    <label for="email">E-mail</label>
+                    <input type="email" id="email" name="email" placeholder="seu@email.com" required>
+                </div>
+                <div class="form-grupo">
+                    <label for="mensagem">Mensagem</label>
+                    <textarea id="mensagem" name="mensagem" placeholder="Como podemos ajudar?" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primario">Enviar Mensagem →</button>
+            </form>
+            {% endif %}
+
+        </div>
+    </div>
+</section>
+
+{% endblock %}
