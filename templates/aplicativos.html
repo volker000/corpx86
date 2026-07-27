@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplicativos — Volker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        .card-thumb { width:100%; height:140px; object-fit:cover; border-radius:10px; margin-bottom:12px; }
+        .card-thumb-placeholder { width:100%; height:140px; border-radius:10px; margin-bottom:12px; background:var(--bg-card); display:flex; align-items:center; justify-content:center; font-size:3rem; }
+    </style>
+</head>
+<body>
+    <div class="particles-bg" id="particles"></div>
+
+    <nav class="navbar" id="navbar">
+        <div class="nav-inner">
+            <a href="/" class="nav-logo">⚡ Volker</a>
+            <ul class="nav-links">
+                <li><a href="/">Início</a></li>
+                <li><a href="/otimizacao">Otimização</a></li>
+                <li><a href="/aplicativos" class="active">Aplicativos</a></li>
+                <li><a href="/arquivos">Arquivos</a></li>
+                <li><a href="/chat">💬 Chat</a></li>
+            </ul>
+            <div class="nav-auth">
+                {% if current_user.is_authenticated %}
+                    <div class="nav-user">
+                        <div class="avatar-sm" style="background:{{ current_user.avatar_color }}">{{ current_user.username[0]|upper }}</div>
+                        <span class="username">{{ current_user.username }}</span>
+                        {% if current_user.is_admin %}<a href="/admin" class="btn btn-sm btn-ghost">⚙️ Admin</a>{% endif %}
+                        <a href="/logout" class="btn btn-sm btn-ghost">Sair</a>
+                    </div>
+                {% else %}
+                    <a href="/login" class="btn-ghost">Entrar</a>
+                    <a href="/register" class="btn btn-primary btn-sm">Criar Conta</a>
+                {% endif %}
+            </div>
+            <button class="mobile-menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('show')">☰</button>
+        </div>
+    </nav>
+
+    <section class="hero" style="min-height:40vh;padding-top:140px;">
+        <div class="hero-content">
+            <div class="hero-badge"><span class="dot"></span>Downloads</div>
+            <h1 class="hero-title" style="font-size:clamp(2rem,5vw,3.5rem);">
+                <span class="gradient-text">Aplicativos</span> Disponíveis
+            </h1>
+            <p class="hero-subtitle">Baixe apps otimizados e ferramentas exclusivas para melhorar o desempenho dos seus dispositivos.</p>
+        </div>
+    </section>
+
+    <section class="section" style="padding-top:40px;">
+        <div class="container">
+            {% if downloads %}
+            <div class="downloads-grid">
+                {% for dl in downloads %}
+                <div class="download-card animate-in">
+                    {% if dl.thumbnail %}
+                        <img src="/thumbnail/{{ dl.thumbnail }}" alt="{{ dl.title }}" class="card-thumb">
+                    {% else %}
+                        <div class="card-thumb-placeholder">📱</div>
+                    {% endif %}
+                    <div class="card-header">
+                        <div class="card-icon">📱</div>
+                        <div>
+                            <div class="card-title">{{ dl.title }}</div>
+                            <div class="card-version">v{{ dl.version }}</div>
+                        </div>
+                    </div>
+                    <div class="card-desc">{{ dl.description or 'Sem descrição disponível.' }}</div>
+                    <div class="card-footer">
+                        <span class="dl-count">📥 {{ dl.downloads_count }} downloads</span>
+                        <a href="/download/{{ dl.id }}" class="btn btn-primary btn-sm">Baixar</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state animate-in">
+                <div class="icon">📦</div>
+                <h3 style="margin-bottom:8px;">Nenhum aplicativo disponível</h3>
+                <p>Volte em breve! Novos apps serão adicionados em breve.</p>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="/">Início</a><a href="/otimizacao">Otimização</a>
+            <a href="/aplicativos">Aplicativos</a><a href="/arquivos">Arquivos</a><a href="/chat">Chat</a>
+        </div>
+        <p class="footer-copy">© 2025 Volker — Todos os direitos reservados.</p>
+    </footer>
+
+    <script>
+        window.addEventListener('scroll', () => {
+            document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 50);
+        });
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.animate-in').forEach(el => observer.observe(el));
+        const particlesEl = document.getElementById('particles');
+        for (let i = 0; i < 20; i++) {
+            const p = document.createElement('div'); p.className = 'particle';
+            p.style.left = Math.random() * 100 + '%'; p.style.top = Math.random() * 100 + '%';
+            p.style.animationDelay = Math.random() * 6 + 's'; particlesEl.appendChild(p);
+        }
+    </script>
+</body>
+</html>
