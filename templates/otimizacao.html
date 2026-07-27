@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Otimização — Volker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="particles-bg" id="particles"></div>
+
+    <nav class="navbar" id="navbar">
+        <div class="nav-inner">
+            <a href="/" class="nav-logo">⚡ Volker</a>
+            <ul class="nav-links">
+                <li><a href="/">Início</a></li>
+                <li><a href="/otimizacao" class="active">Otimização</a></li>
+                <li><a href="/aplicativos">Aplicativos</a></li>
+                <li><a href="/arquivos">Arquivos</a></li>
+                <li><a href="/chat">💬 Chat</a></li>
+            </ul>
+            <div class="nav-auth">
+                {% if current_user.is_authenticated %}
+                    <div class="nav-user">
+                        <div class="avatar-sm" style="background:{{ current_user.avatar_color }}">{{ current_user.username[0]|upper }}</div>
+                        <span class="username">{{ current_user.username }}</span>
+                        {% if current_user.is_admin %}<a href="/admin" class="btn btn-sm btn-ghost">⚙️ Admin</a>{% endif %}
+                        <a href="/logout" class="btn btn-sm btn-ghost">Sair</a>
+                    </div>
+                {% else %}
+                    <a href="/login" class="btn-ghost">Entrar</a>
+                    <a href="/register" class="btn btn-primary btn-sm">Criar Conta</a>
+                {% endif %}
+            </div>
+            <button class="mobile-menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('show')">☰</button>
+        </div>
+    </nav>
+
+    <section class="hero" style="min-height:50vh;padding-top:140px;">
+        <div class="hero-content">
+            <div class="hero-badge"><span class="dot"></span>Guia Completo</div>
+            <h1 class="hero-title" style="font-size:clamp(2rem,5vw,3.5rem);">
+                <span class="gradient-text">Otimização</span> de Aplicativos
+            </h1>
+            <p class="hero-subtitle">
+                Aprenda técnicas profissionais para tornar seus apps mais rápidos, leves e eficientes. Reduza uso de RAM, CPU e bateria.
+            </p>
+        </div>
+    </section>
+
+    <section class="section" style="padding-top:40px;">
+        <div class="container">
+            {% if tips %}
+            <div class="tips-grid">
+                {% for tip in tips %}
+                <div class="tip-card animate-in">
+                    <div class="tip-number">{{ '%02d'|format(tip.number) }}</div>
+                    <h3>{{ tip.icon }} {{ tip.title }}</h3>
+                    <p>{{ tip.description }}</p>
+                    {% if tip.bullets %}
+                    <ul>
+                        {% for bullet in tip.bullets.split('\n') %}
+                            {% if bullet.strip() %}
+                            <li>{{ bullet.strip() }}</li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state animate-in">
+                <div class="icon">💡</div>
+                <h3 style="margin-bottom:8px;">Nenhuma dica disponível</h3>
+                <p>O admin ainda não adicionou dicas de otimização.</p>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="/">Início</a>
+            <a href="/otimizacao">Otimização</a>
+            <a href="/aplicativos">Aplicativos</a>
+            <a href="/arquivos">Arquivos</a>
+            <a href="/chat">Chat</a>
+        </div>
+        <p class="footer-copy">© 2025 Volker — Todos os direitos reservados.</p>
+    </footer>
+
+    <script>
+        window.addEventListener('scroll', () => {
+            document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 50);
+        });
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.animate-in').forEach(el => observer.observe(el));
+        const particlesEl = document.getElementById('particles');
+        for (let i = 0; i < 20; i++) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            p.style.left = Math.random() * 100 + '%';
+            p.style.top = Math.random() * 100 + '%';
+            p.style.animationDelay = Math.random() * 6 + 's';
+            particlesEl.appendChild(p);
+        }
+    </script>
+</body>
+</html>
