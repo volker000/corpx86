@@ -811,34 +811,61 @@ input, button, textarea, select {
 }
 
 /* ===================== BADGES ===================== */
-.badge-beta {
+/* ===== BADGES ESTILO DISCORD ===== */
+.badge-beta,
+.badge-admin {
+    position: relative;
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    padding: 2px 8px;
-    background: linear-gradient(135deg, rgba(253, 203, 110, 0.15), rgba(253, 121, 168, 0.15));
-    border: 1px solid rgba(253, 203, 110, 0.3);
-    border-radius: 100px;
-    font-size: 0.7rem;
-    font-weight: 700;
-    color: var(--yellow);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: transform .2s, filter .2s;
+    vertical-align: middle;
 }
 
-.badge-admin {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 2px 8px;
-    background: rgba(225, 112, 85, 0.15);
-    border: 1px solid rgba(225, 112, 85, 0.3);
-    border-radius: 100px;
-    font-size: 0.7rem;
-    font-weight: 700;
-    color: var(--red);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+.badge-beta:hover,
+.badge-admin:hover {
+    transform: scale(1.2);
+    filter: brightness(1.2);
+}
+
+/* Ícone SVG dentro da badge */
+.badge-beta svg,
+.badge-admin svg {
+    width: 22px;
+    height: 22px;
+    display: block;
+}
+
+/* Tooltip ao passar o mouse */
+.badge-beta::after,
+.badge-admin::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #111;
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    white-space: nowrap;
+    padding: 4px 10px;
+    border-radius: 6px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .15s;
+    z-index: 999;
+}
+
+.badge-beta:hover::after,
+.badge-admin:hover::after {
+    opacity: 1;
 }
 
 /* ===================== CHAT LAYOUT ===================== */
@@ -1438,4 +1465,10 @@ input, button, textarea, select {
     .tips-grid {
         grid-template-columns: 1fr;
     }
+}
+
+/* Badge glow animado */
+@keyframes badge-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 currentColor; }
+    50% { box-shadow: 0 0 6px 2px currentColor; }
 }
