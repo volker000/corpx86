@@ -32,8 +32,8 @@
                     <div class="user-info">
                         <div class="username">
                             {{ current_user.username }}
-                            {% if current_user.role == 'admin' %}<span class="badge-admin">Admin</span>{% endif %}
-                            {% if badge == 'beta' %}<span class="badge-beta">Beta</span>{% endif %}
+                            {% if current_user.role == 'admin' %}<span class="badge-admin" data-tip="Administrador" title="Administrador"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="12" fill="#E17055"/><path d="M12 4l1.8 5.4H19l-4.5 3.3 1.7 5.3L12 15l-4.2 3 1.7-5.3L5 9.4h5.2L12 4z" fill="white"/></svg></span>{% endif %}
+                            {% if badge == 'beta' %}<span class="badge-beta" data-tip="Beta Tester" title="Beta Tester"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="betabg" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse"><stop stop-color="#FDCB6E"/><stop offset="1" stop-color="#FD79A8"/></linearGradient></defs><circle cx="12" cy="12" r="12" fill="url(#betabg)"/><path d="M9 7h4.5a2.5 2.5 0 010 5H9V7zm0 5h5a2.5 2.5 0 010 5H9v-5z" fill="white"/></svg></span>{% endif %}
                         </div>
                         <div class="status-text">Online</div>
                     </div>
@@ -114,12 +114,12 @@
         const typingIndicator = document.getElementById('typingIndicator');
 
         function badgeHTML(badge) {
-            if (badge === 'beta') return '<span class="badge-beta">Beta</span>';
+            if (badge === 'beta') return '<span class="badge-beta" data-tip="Beta Tester" title="Beta Tester"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="betabg" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse"><stop stop-color="#FDCB6E"/><stop offset="1" stop-color="#FD79A8"/></linearGradient></defs><circle cx="12" cy="12" r="12" fill="url(#betabg)"/><path d="M9 7h4.5a2.5 2.5 0 010 5H9V7zm0 5h5a2.5 2.5 0 010 5H9v-5z" fill="white"/></svg></span>';
             return '';
         }
 
         function roleHTML(role) {
-            if (role === 'admin') return '<span class="badge-admin">Admin</span>';
+            if (role === 'admin') return '<span class="badge-admin" data-tip="Administrador" title="Administrador"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="12" fill="#E17055"/><path d="M12 4l1.8 5.4H19l-4.5 3.3 1.7 5.3L12 15l-4.2 3 1.7-5.3L5 9.4h5.2L12 4z" fill="white"/></svg></span>';
             return '';
         }
 
